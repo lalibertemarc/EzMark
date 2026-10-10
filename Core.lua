@@ -1,10 +1,7 @@
 -- EzMark: Alt+click a player name in chat to put a raid marker over them.
 local addonName, ns = ...
 
-local GetCVar, SetCVar = C_CVar.GetCVar, C_CVar.SetCVar
-
 local db          -- EzMarkDB, set on ADDON_LOADED
-local pending     -- name we're waiting on while friendly nameplates come up
 local hover       -- player link under the mouse in chat
 local plates = {} -- active nameplate unit tokens
 local events = CreateFrame("Frame")
@@ -21,9 +18,10 @@ local function IconText(index)
     return "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_" .. index .. ":0|t"
 end
 
--- Lowercase, own realm stripped, so "Bob", "bob" and "Bob-MyRealm" all match.
+-- Forever returns a character's surname where UnitName's realm would be, and chat links
+-- may carry it too. First names are unique, so match on the lowercased first name alone.
 local function NameKey(name)
-    return strlower(Ambiguate(name, "none"))
+    return strlower(name:match("^[^%s%-]+") or name)
 end
 
 ---------------------------------------------------------------------------
@@ -34,9 +32,8 @@ local function UnitMatches(unit, key)
     if not UnitExists(unit) then return false end
     local isPlayer = UnitIsPlayer(unit)
     if IsSecret(isPlayer) or not isPlayer then return false end
-    local name, realm = UnitName(unit)
-    if not name or IsSecret(name) or IsSecret(realm) then return false end
-    if realm and realm ~= "" then name = name .. "-" .. realm end
+    local name = UnitName(unit)
+    if not name or IsSecret(name) then return false end
     return NameKey(name) == key
 end
 
@@ -53,50 +50,6 @@ local function FindUnit(key)
     for unit in pairs(plates) do
         if UnitMatches(unit, key) then return unit end
     end
-end
-
----------------------------------------------------------------------------
--- Friendly nameplates
----------------------------------------------------------------------------
--- Turned on just long enough to find the player, then put back. Saved in the DB so a
--- /reload in that window still restores them; nameplate CVars can't change in combat.
-local function RestorePlates()
-    local saved = db.plateRestore
-    if not saved then return end
-    if InCombatLockdown() then
-        events:RegisterEvent("PLAYER_REGEN_ENABLED")
-        return
-    end
-    for cvar, value in pairs(saved) do SetCVar(cvar, value) end
-    db.plateRestore = nil
-end
-
-local function FriendPlatesShown()
-    for _, cvar in ipairs(ns.FRIEND_PLATE_CVARS) do
-        if GetCVar(cvar) == "1" then return true end
-    end
-    return false
-end
-
-local function ShowFriendPlates()
-    local saved = {}
-    for _, cvar in ipairs(ns.FRIEND_PLATE_CVARS) do
-        local value = GetCVar(cvar)
-        if value ~= nil then
-            saved[cvar] = value
-            SetCVar(cvar, "1")
-        end
-    end
-    if not next(saved) then return false end
-    db.plateRestore = saved
-    return true
-end
-
-local function FinishPending()
-    if not pending then return end
-    pending.timer:Cancel()
-    pending = nil
-    RestorePlates()
 end
 
 ---------------------------------------------------------------------------
@@ -128,32 +81,14 @@ local function PrintOutOfRange(name)
     Print(name .. " isn't close enough to mark.")
 end
 
+-- /mark can't target (that needs a secure click), so it only finds players who already have
+-- a unit token: target, mouseover, focus, group or a visible nameplate.
 local function MarkByName(name)
     name = strtrim(name or "")
     if name == "" or not CanMark() then return end
-
-    local key = NameKey(name)
-    local unit = FindUnit(key)
+    local unit = FindUnit(NameKey(name))
     if unit then return ApplyMark(unit, name) end
-
-    FinishPending()
-    if FriendPlatesShown() or InCombatLockdown() or not ShowFriendPlates() then
-        return PrintOutOfRange(name)
-    end
-    pending = { name = name, key = key }
-    pending.timer = C_Timer.NewTimer(ns.PLATE_WAIT, function()
-        local missed = pending.name
-        FinishPending()
-        PrintOutOfRange(missed)
-    end)
-end
-
-local function OnPlateAdded(unit)
-    plates[unit] = true
-    if pending and UnitMatches(unit, pending.key) then
-        ApplyMark(unit, pending.name) -- before the plate (and its token) goes away
-        FinishPending()
-    end
+    PrintOutOfRange(name)
 end
 
 ---------------------------------------------------------------------------
@@ -162,9 +97,15 @@ end
 -- A plain click on a player name opens a whisper, and hooking that path would taint the
 -- chat box. Instead, while Alt is held over a name, this button covers it and takes the
 -- click, so the chat frame never sees it.
-local overlay = CreateFrame("Button", nil, UIParent)
+--
+-- Forever doesn't give addons nameplates for friendly players, so there's often no unit
+-- token to mark. The button is secure and runs a macro instead: clear the target, target
+-- the player by name (works for anyone in view), then /tm, which toggles the icon.
+-- Secure frames can't be moved or changed in combat, so it only shows out of combat.
+local overlay = CreateFrame("Button", "EzMarkOverlay", UIParent, "SecureActionButtonTemplate")
 overlay:SetFrameStrata("DIALOG")
-overlay:RegisterForClicks("LeftButtonUp")
+overlay:RegisterForClicks(C_CVar.GetCVarBool("ActionButtonUseKeyDown") and "LeftButtonDown" or "LeftButtonUp")
+overlay:SetAttribute("type", "macro")
 overlay:EnableMouseWheel(true)
 overlay:Hide()
 
@@ -172,20 +113,66 @@ local glow = overlay:CreateTexture(nil, "BACKGROUND")
 glow:SetAllPoints()
 glow:SetColorTexture(1, 0.2, 0.2, 0.25)
 
+local MIN_WIDTH, MIN_HEIGHT = 24, 14
+
+-- Chat links can carry the surname ("Sephrina Gam") but the unit's name is just the first
+-- name, so try the full name and then the first name, which is the likelier match.
+local function MarkMacro(name)
+    name = name:gsub("%c", "")
+    local first = name:match("^[^%s%-]+") or name
+    local lines = { "/cleartarget" }
+    if first ~= name then lines[#lines + 1] = "/targetexact " .. name end
+    lines[#lines + 1] = "/targetexact " .. first
+    lines[#lines + 1] = "/tm " .. db.icon
+    return table.concat(lines, "\n")
+end
+
+-- The link's box in UIParent coordinates. A secure frame can't be anchored to the chat's
+-- font string, so the box is worked out here and placed on UIParent instead.
+local function LinkRect(scale)
+    local region = hover.region
+    local regionLeft, regionBottom = region and region:GetLeft(), region and region:GetBottom()
+    if not (regionLeft and hover.left and hover.bottom) then return end
+    local owner = region.GetEffectiveScale and region or region:GetParent()
+    local ratio = owner:GetEffectiveScale() / scale
+    return (regionLeft + hover.left) * ratio, (regionBottom + hover.bottom) * ratio,
+        math.max((hover.width or 0) * ratio, MIN_WIDTH), math.max((hover.height or 0) * ratio, MIN_HEIGHT)
+end
+
+-- The link bounds line up for one-line messages but not always for wrapped ones, so if the
+-- box doesn't land under the cursor, center it on the cursor instead.
 local function ShowOverlay()
+    if InCombatLockdown() then return end
+    local scale = overlay:GetEffectiveScale()
+    local x, y = GetCursorPosition()
+    x, y = x / scale, y / scale
+    local left, bottom, width, height = LinkRect(scale)
     overlay:ClearAllPoints()
-    overlay:SetPoint("BOTTOMLEFT", hover.region, "BOTTOMLEFT", hover.left, hover.bottom)
-    overlay:SetSize(hover.width, hover.height)
+    if left and x >= left and x <= left + width and y >= bottom and y <= bottom + height then
+        overlay:SetSize(width, height)
+        overlay:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", left, bottom)
+    else
+        overlay:SetSize(math.max(hover.width or 0, MIN_WIDTH), math.max(hover.height or 0, MIN_HEIGHT))
+        overlay:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x, y)
+    end
     overlay.name = hover.name
+    overlay:SetAttribute("macrotext", MarkMacro(hover.name))
     overlay:Show()
 end
 
 local function HideOverlay()
-    overlay:Hide()
+    if not InCombatLockdown() then overlay:Hide() end
     hover = nil
 end
 
-overlay:SetScript("OnClick", function(self) MarkByName(self.name) end)
+-- The macro has run by now; if they aren't the target, /targetexact didn't find them.
+overlay:SetScript("PostClick", function(self)
+    if not UnitMatches("target", NameKey(self.name)) then
+        PrintOutOfRange(self.name)
+    else
+        CanMark()
+    end
+end)
 overlay:SetScript("OnLeave", HideOverlay)
 overlay:SetScript("OnMouseWheel", HideOverlay) -- chat would scroll a different line under it
 
@@ -214,6 +201,35 @@ local function ParseIcon(arg)
     return ns.ICON_ALIASES[arg]
 end
 
+local function Describe(value)
+    if IsSecret(value) then return "<secret>" end
+    return tostring(value)
+end
+
+-- What EzMark can see, for when a nearby player still comes up as out of range.
+local function PrintDebug(name)
+    name = name ~= "" and name or overlay.name
+    if name then
+        Print("looking for '" .. name .. "' -> key '" .. NameKey(name) .. "'")
+        Print("bytes: " .. table.concat({ name:byte(1, -1) }, " "))
+    end
+    local units = {}
+    for _, unit in ipairs(FIXED_UNITS) do units[#units + 1] = unit end
+    local count = 0
+    for unit in pairs(plates) do
+        units[#units + 1] = unit
+        count = count + 1
+    end
+    Print(count .. " nameplates tracked")
+    for _, unit in ipairs(units) do
+        if UnitExists(unit) then
+            local unitName, surname = UnitName(unit)
+            Print(unit .. ": name=" .. Describe(unitName) .. " surname=" .. Describe(surname)
+                .. " player=" .. Describe(UnitIsPlayer(unit)))
+        end
+    end
+end
+
 local function PrintHelp()
     Print("Alt+click a player's name in chat to mark them " .. IconText(db.icon) .. " (again to remove).")
     Print("/mark <name> - mark a player by name")
@@ -226,6 +242,7 @@ SlashCmdList.EZMARK = function(msg)
     msg = strtrim(msg or "")
     local cmd, rest = msg:match("^(%S+)%s*(.-)$")
     if not cmd then return PrintHelp() end
+    if strlower(cmd) == "debug" then return PrintDebug(rest) end
     if strlower(cmd) == "icon" and rest ~= "" then
         local index = ParseIcon(strlower(rest))
         if not index then return Print("unknown icon '" .. rest .. "'.") end
@@ -245,24 +262,24 @@ events:SetScript("OnEvent", function(self, event, arg1, arg2)
         EzMarkDB = EzMarkDB or {}
         db = EzMarkDB
         if not ns.ICONS[db.icon or 0] then db.icon = ns.DEFAULT_ICON end
-        RestorePlates()
+        db.plateRestore = nil -- left by v1.0.0 dev builds
     elseif event == "NAME_PLATE_UNIT_ADDED" then
-        OnPlateAdded(arg1)
+        plates[arg1] = true
     elseif event == "NAME_PLATE_UNIT_REMOVED" then
         plates[arg1] = nil
     elseif event == "MODIFIER_STATE_CHANGED" then
         if arg1 ~= "LALT" and arg1 ~= "RALT" then return end
         if arg2 == 1 and hover then
             ShowOverlay()
-        elseif arg2 == 0 then
+        elseif arg2 == 0 and not InCombatLockdown() then
             overlay:Hide()
         end
-    elseif event == "PLAYER_REGEN_ENABLED" then
-        self:UnregisterEvent("PLAYER_REGEN_ENABLED")
-        RestorePlates()
+    elseif event == "PLAYER_REGEN_DISABLED" then
+        HideOverlay() -- last chance before lockdown freezes it
     end
 end)
 events:RegisterEvent("ADDON_LOADED")
 events:RegisterEvent("NAME_PLATE_UNIT_ADDED")
 events:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
 events:RegisterEvent("MODIFIER_STATE_CHANGED")
+events:RegisterEvent("PLAYER_REGEN_DISABLED")

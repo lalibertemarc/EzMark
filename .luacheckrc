@@ -11,11 +11,11 @@ globals = {
 
 read_globals = {
     -- Frames & UI
-    "CreateFrame", "UIParent", "DEFAULT_CHAT_FRAME", "EventRegistry",
+    "CreateFrame", "UIParent", "DEFAULT_CHAT_FRAME", "EventRegistry", "GetCursorPosition",
     -- Namespaced APIs
-    "C_CVar", "C_Timer",
+    "C_CVar",
     -- Global APIs
-    "InCombatLockdown", "IsAltKeyDown", "issecretvalue", "Ambiguate",
+    "InCombatLockdown", "IsAltKeyDown", "issecretvalue",
     "UnitExists", "UnitIsPlayer", "UnitName",
     "IsInRaid", "GetNumGroupMembers", "UnitIsGroupLeader", "UnitIsGroupAssistant",
     "GetRaidTargetIndex", "SetRaidTarget",
