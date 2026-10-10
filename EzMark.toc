@@ -5,6 +5,7 @@
 ## Version: @project-version@
 ## IconTexture: Interface\TargetingFrame\UI-RaidTargetingIcon_7
 ## SavedVariables: EzMarkDB
+## X-Curse-Project-ID: 1736098
 
 Data.lua
 Core.lua
