@@ -19,9 +19,13 @@ local function IconText(index)
 end
 
 -- Forever returns a character's surname where UnitName's realm would be, and chat links
--- may carry it too. First names are unique, so match on the lowercased first name alone.
+-- may carry it too ("Sephrina Gam"). First names are unique, so that's what we match on.
+local function FirstName(name)
+    return name:match("^[^%s%-]+") or name
+end
+
 local function NameKey(name)
-    return strlower(name:match("^[^%s%-]+") or name)
+    return strlower(FirstName(name))
 end
 
 ---------------------------------------------------------------------------
@@ -115,16 +119,20 @@ glow:SetColorTexture(1, 0.2, 0.2, 0.25)
 
 local MIN_WIDTH, MIN_HEIGHT = 24, 14
 
--- Chat links can carry the surname ("Sephrina Gam") but the unit's name is just the first
--- name, so try the full name and then the first name, which is the likelier match.
+-- Try the full name, then the first name: the unit's name is the first name alone, so that
+-- line is the likelier match and gets the last word.
 local function MarkMacro(name)
     name = name:gsub("%c", "")
-    local first = name:match("^[^%s%-]+") or name
+    local first = FirstName(name)
     local lines = { "/cleartarget" }
     if first ~= name then lines[#lines + 1] = "/targetexact " .. name end
     lines[#lines + 1] = "/targetexact " .. first
     lines[#lines + 1] = "/tm " .. db.icon
     return table.concat(lines, "\n")
+end
+
+local function LinkSize(ratio)
+    return math.max((hover.width or 0) * ratio, MIN_WIDTH), math.max((hover.height or 0) * ratio, MIN_HEIGHT)
 end
 
 -- The link's box in UIParent coordinates. A secure frame can't be anchored to the chat's
@@ -135,8 +143,7 @@ local function LinkRect(scale)
     if not (regionLeft and hover.left and hover.bottom) then return end
     local owner = region.GetEffectiveScale and region or region:GetParent()
     local ratio = owner:GetEffectiveScale() / scale
-    return (regionLeft + hover.left) * ratio, (regionBottom + hover.bottom) * ratio,
-        math.max((hover.width or 0) * ratio, MIN_WIDTH), math.max((hover.height or 0) * ratio, MIN_HEIGHT)
+    return (regionLeft + hover.left) * ratio, (regionBottom + hover.bottom) * ratio, LinkSize(ratio)
 end
 
 -- The link bounds line up for one-line messages but not always for wrapped ones, so if the
@@ -152,7 +159,7 @@ local function ShowOverlay()
         overlay:SetSize(width, height)
         overlay:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", left, bottom)
     else
-        overlay:SetSize(math.max(hover.width or 0, MIN_WIDTH), math.max(hover.height or 0, MIN_HEIGHT))
+        overlay:SetSize(LinkSize(1))
         overlay:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x, y)
     end
     overlay.name = hover.name
@@ -262,7 +269,6 @@ events:SetScript("OnEvent", function(self, event, arg1, arg2)
         EzMarkDB = EzMarkDB or {}
         db = EzMarkDB
         if not ns.ICONS[db.icon or 0] then db.icon = ns.DEFAULT_ICON end
-        db.plateRestore = nil -- left by v1.0.0 dev builds
     elseif event == "NAME_PLATE_UNIT_ADDED" then
         plates[arg1] = true
     elseif event == "NAME_PLATE_UNIT_REMOVED" then
