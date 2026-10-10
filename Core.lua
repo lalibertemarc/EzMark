@@ -124,6 +124,10 @@ local function ApplyMark(unit, name)
     end
 end
 
+local function PrintOutOfRange(name)
+    Print(name .. " isn't close enough to mark.")
+end
+
 local function MarkByName(name)
     name = strtrim(name or "")
     if name == "" or not CanMark() then return end
@@ -134,13 +138,13 @@ local function MarkByName(name)
 
     FinishPending()
     if FriendPlatesShown() or InCombatLockdown() or not ShowFriendPlates() then
-        return Print(name .. " isn't close enough to mark.")
+        return PrintOutOfRange(name)
     end
     pending = { name = name, key = key }
     pending.timer = C_Timer.NewTimer(ns.PLATE_WAIT, function()
         local missed = pending.name
         FinishPending()
-        Print(missed .. " isn't close enough to mark.")
+        PrintOutOfRange(missed)
     end)
 end
 
