@@ -1,0 +1,10 @@
+## Interface: 16001
+## Title: EzMark
+## Notes: Alt+click a name in chat to put a raid marker over that player.
+## Author: Marc
+## Version: @project-version@
+## IconTexture: Interface\TargetingFrame\UI-RaidTargetingIcon_7
+## SavedVariables: EzMarkDB
+
+Data.lua
+Core.lua
