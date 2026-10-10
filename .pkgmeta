@@ -7,4 +7,5 @@ manual-changelog:
 ignore:
   - README.md
   - .luacheckrc
+  - media
   - .githooks

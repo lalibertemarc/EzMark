@@ -208,35 +208,6 @@ local function ParseIcon(arg)
     return ns.ICON_ALIASES[arg]
 end
 
-local function Describe(value)
-    if IsSecret(value) then return "<secret>" end
-    return tostring(value)
-end
-
--- What EzMark can see, for when a nearby player still comes up as out of range.
-local function PrintDebug(name)
-    name = name ~= "" and name or overlay.name
-    if name then
-        Print("looking for '" .. name .. "' -> key '" .. NameKey(name) .. "'")
-        Print("bytes: " .. table.concat({ name:byte(1, -1) }, " "))
-    end
-    local units = {}
-    for _, unit in ipairs(FIXED_UNITS) do units[#units + 1] = unit end
-    local count = 0
-    for unit in pairs(plates) do
-        units[#units + 1] = unit
-        count = count + 1
-    end
-    Print(count .. " nameplates tracked")
-    for _, unit in ipairs(units) do
-        if UnitExists(unit) then
-            local unitName, surname = UnitName(unit)
-            Print(unit .. ": name=" .. Describe(unitName) .. " surname=" .. Describe(surname)
-                .. " player=" .. Describe(UnitIsPlayer(unit)))
-        end
-    end
-end
-
 local function PrintHelp()
     Print("Alt+click a player's name in chat to mark them " .. IconText(db.icon) .. " (again to remove).")
     Print("/mark <name> - mark a player by name")
@@ -249,7 +220,6 @@ SlashCmdList.EZMARK = function(msg)
     msg = strtrim(msg or "")
     local cmd, rest = msg:match("^(%S+)%s*(.-)$")
     if not cmd then return PrintHelp() end
-    if strlower(cmd) == "debug" then return PrintDebug(rest) end
     if strlower(cmd) == "icon" and rest ~= "" then
         local index = ParseIcon(strlower(rest))
         if not index then return Print("unknown icon '" .. rest .. "'.") end

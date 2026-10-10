@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="70%">
+      <stop offset="0" stop-color="#43226a"/>
+      <stop offset="0.6" stop-color="#22113c"/>
+      <stop offset="1" stop-color="#110820"/>
+    </radialGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe7a0" stop-opacity="0"/>
+      <stop offset="0.35" stop-color="#ffd36b" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#ffb24a" stop-opacity="0.42"/>
+    </linearGradient>
+    <radialGradient id="pool" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#ffd36b" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#ffd36b" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff0b0"/>
+      <stop offset="0.45" stop-color="#e5b94c"/>
+      <stop offset="1" stop-color="#8f5f17"/>
+    </linearGradient>
+    <linearGradient id="red" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff7a5c"/>
+      <stop offset="0.5" stop-color="#e8262a"/>
+      <stop offset="1" stop-color="#8e0c12"/>
+    </linearGradient>
+    <radialGradient id="redglow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#ff4a3a" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#ff4a3a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="400" height="400" fill="url(#bg)"/>
+
+  <!-- stars -->
+  <g fill="#fff6d0" opacity="0.8">
+    <circle cx="300" cy="46" r="2.2"/><circle cx="352" cy="96" r="1.6"/><circle cx="58" cy="128" r="1.8"/>
+    <circle cx="250" cy="28" r="1.4"/><circle cx="362" cy="168" r="1.4"/><circle cx="30" cy="196" r="1.6"/>
+  </g>
+
+  <!-- spotlight -->
+  <path d="M168,0 H232 L292,340 H108 Z" fill="url(#beam)"/>
+  <ellipse cx="200" cy="338" rx="96" ry="22" fill="url(#pool)"/>
+
+  <!-- back row of the crowd -->
+  <g fill="#2c1748">
+    <g transform="translate(58,334) scale(0.95)"><circle cx="0" cy="-62" r="15"/><path d="M-28,0 C-28,-30 -18,-44 0,-44 C18,-44 28,-30 28,0 Z"/></g>
+    <g transform="translate(118,326) scale(0.9)"><circle cx="0" cy="-62" r="15"/><path d="M-28,0 C-28,-30 -18,-44 0,-44 C18,-44 28,-30 28,0 Z"/></g>
+    <g transform="translate(282,326) scale(0.9)"><circle cx="0" cy="-62" r="15"/><path d="M-28,0 C-28,-30 -18,-44 0,-44 C18,-44 28,-30 28,0 Z"/></g>
+    <g transform="translate(342,334) scale(0.95)"><circle cx="0" cy="-62" r="15"/><path d="M-28,0 C-28,-30 -18,-44 0,-44 C18,-44 28,-30 28,0 Z"/></g>
+  </g>
+
+  <!-- the marked player, lit gold -->
+  <g transform="translate(200,340) scale(1.45)" stroke="#3a2306" stroke-width="3.5" stroke-linejoin="round" fill="url(#gold)">
+    <path d="M-28,0 C-28,-30 -18,-44 0,-44 C18,-44 28,-30 28,0 Z"/>
+    <circle cx="0" cy="-62" r="15"/>
+  </g>
+
+  <!-- front row of the crowd -->
+  <g fill="#170b28">
+    <g transform="translate(18,404) scale(1.25)"><circle cx="0" cy="-62" r="15"/><path d="M-28,0 C-28,-30 -18,-44 0,-44 C18,-44 28,-30 28,0 Z"/></g>
+    <g transform="translate(96,412) scale(1.2)"><circle cx="0" cy="-62" r="15"/><path d="M-28,0 C-28,-30 -18,-44 0,-44 C18,-44 28,-30 28,0 Z"/></g>
+    <g transform="translate(304,412) scale(1.2)"><circle cx="0" cy="-62" r="15"/><path d="M-28,0 C-28,-30 -18,-44 0,-44 C18,-44 28,-30 28,0 Z"/></g>
+    <g transform="translate(382,404) scale(1.25)"><circle cx="0" cy="-62" r="15"/><path d="M-28,0 C-28,-30 -18,-44 0,-44 C18,-44 28,-30 28,0 Z"/></g>
+  </g>
+
+  <!-- the raid marker -->
+  <circle cx="200" cy="150" r="96" fill="url(#redglow)"/>
+  <g transform="translate(200,150) rotate(45)">
+    <g fill="#3a0606">
+      <rect x="-68" y="-21" width="136" height="42" rx="14"/>
+      <rect x="-21" y="-68" width="42" height="136" rx="14"/>
+    </g>
+    <g fill="url(#red)">
+      <rect x="-61" y="-14" width="122" height="28" rx="9"/>
+      <rect x="-14" y="-61" width="28" height="122" rx="9"/>
+    </g>
+  </g>
+  <!-- shine on the upper strokes -->
+  <g stroke="#ffd0c0" stroke-width="5" stroke-linecap="round" opacity="0.75">
+    <path d="M166,110 L186,130"/>
+    <path d="M234,110 L218,126"/>
+  </g>
+
+  <!-- chat bubble with the clicked name -->
+  <g transform="translate(22,26)">
+    <path d="M10,0 H122 Q132,0 132,10 V50 Q132,60 122,60 H40 L22,76 L26,60 H10 Q0,60 0,50 V10 Q0,0 10,0 Z"
+          fill="#1a0d2a" stroke="url(#gold)" stroke-width="5" stroke-linejoin="round"/>
+    <rect x="14" y="15" width="44" height="11" rx="5.5" fill="#ff4a3a"/>
+    <rect x="64" y="15" width="54" height="11" rx="5.5" fill="#8a76a8"/>
+    <rect x="14" y="34" width="80" height="11" rx="5.5" fill="#8a76a8"/>
+  </g>
+  <!-- cursor clicking the name -->
+  <path d="M58,44 L58,86 L68,76 L76,94 L84,90 L76,72 L90,72 Z"
+        fill="#fff6d0" stroke="#3a2306" stroke-width="4" stroke-linejoin="round"/>
+
+  <!-- sparkles -->
+  <g fill="#fff6d0">
+    <path d="M318,214 l4,12 l12,4 l-12,4 l-4,12 l-4,-12 l-12,-4 l12,-4 z"/>
+    <path d="M100,236 l3,9 l9,3 l-9,3 l-3,9 l-3,-9 l-9,-3 l9,-3 z"/>
+    <path d="M300,70 l3,9 l9,3 l-9,3 l-3,9 l-3,-9 l-9,-3 l9,-3 z"/>
+  </g>
+</svg>
