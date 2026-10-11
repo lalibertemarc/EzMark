@@ -14,6 +14,11 @@ local function IsSecret(value)
     return issecretvalue and issecretvalue(value)
 end
 
+-- The value, or nil if it's secret.
+local function Plain(value)
+    if not IsSecret(value) then return value end
+end
+
 local function IconText(index)
     return "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_" .. index .. ":0|t"
 end
@@ -139,8 +144,9 @@ end
 -- font string, so the box is worked out here and placed on UIParent instead.
 local function LinkRect(scale)
     local region = hover.region
-    local regionLeft, regionBottom = region and region:GetLeft(), region and region:GetBottom()
-    if not (regionLeft and hover.left and hover.bottom) then return end
+    -- A line whose text is secret has secret geometry too; then fall back to the cursor.
+    local regionLeft, regionBottom = Plain(region and region:GetLeft()), Plain(region and region:GetBottom())
+    if not (regionLeft and regionBottom and hover.left and hover.bottom) then return end
     local owner = region.GetEffectiveScale and region or region:GetParent()
     local ratio = owner:GetEffectiveScale() / scale
     return (regionLeft + hover.left) * ratio, (regionBottom + hover.bottom) * ratio, LinkSize(ratio)
@@ -187,7 +193,8 @@ EventRegistry:RegisterCallback("ChatFrame.OnHyperlinkEnter", function(_, _, link
     if IsSecret(link) then return end
     local name = link:match("^player:([^:]+)")
     if not name or name == "" then return end
-    hover = { name = name, region = region, left = left, bottom = bottom, width = width, height = height }
+    hover = { name = name, region = region, left = Plain(left), bottom = Plain(bottom),
+        width = Plain(width), height = Plain(height) }
     if IsAltKeyDown() then ShowOverlay() end
 end, overlay)
 
