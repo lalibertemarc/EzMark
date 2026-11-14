@@ -3,6 +3,7 @@
 ## Notes: Alt+click a name in chat to put a raid marker over that player.
 ## Author: Marc
 ## Version: @project-version@
+## Category: Chat & Communication
 ## IconTexture: Interface\TargetingFrame\UI-RaidTargetingIcon_7
 ## SavedVariables: EzMarkDB
 ## X-Curse-Project-ID: 1736098
