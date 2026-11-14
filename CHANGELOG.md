@@ -1,5 +1,9 @@
 # EzMark
 
+## v1.0.2
+
+- Listed under **Chat & Communication** in the game's AddOns list.
+
 ## v1.0.1
 
 - Fixed a Lua error when holding Alt over a player name on some chat lines. On those lines the highlight now centers on the cursor.
