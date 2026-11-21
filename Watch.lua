@@ -1,10 +1,10 @@
 -- EzMark: watch for one NPC by name. When it's around, alert, and let one key (or the skull
 -- button) target and mark it.
 --
--- Targeting needs your own key press or click, so the addon never targets by itself: the
--- button is secure and runs "/targetexact <name>". Marking needs a press too: SetRaidTarget
--- from the watcher's events was ADDON_ACTION_FORBIDDEN in Forever (2026-11-21), so it only
--- marks in the button's PostClick.
+-- Targeting needs your own key press or click, so the addon never targets by itself. Marking
+-- is no better: in Forever SetRaidTarget from addon code is ADDON_ACTION_FORBIDDEN, from the
+-- watcher's events and even from the button's PostClick (2026-11-21). So the secure button's
+-- macro does both (see WatchMacro); the watcher only spots and alerts.
 local _, ns = ...
 
 local Print, IsSecret, IconText = ns.Print, ns.IsSecret, ns.IconText
@@ -88,6 +88,18 @@ local function Place()
     end
 end
 
+-- Clear the target first so that, if the NPC isn't in view, /tm finds nothing to mark instead
+-- of marking whatever you had; then go back to that target. "/tm !N" never toggles the marker
+-- off (Blizzard's SlashCommands.lua), so spamming the key keeps it on.
+function ns.WatchMacro(name, marker)
+    return table.concat({
+        "/cleartarget",
+        "/targetexact " .. name,
+        "/tm [exists] !" .. marker,
+        "/targetlasttarget [noexists]",
+    }, "\n")
+end
+
 -- Attributes and Show/Hide are locked in combat; they wait for it to end.
 local function ApplySecure()
     if InCombatLockdown() then
@@ -96,7 +108,7 @@ local function ApplySecure()
     end
     pending = nil
     if db.watch then
-        button:SetAttribute("macrotext", "/targetexact " .. db.watch)
+        button:SetAttribute("macrotext", ns.WatchMacro(db.watch, db.watchIcon))
         button:Show()
     else
         button:SetAttribute("macrotext", nil)
@@ -191,20 +203,16 @@ local function StartWatching()
     end
 end
 
--- The macro has run by now (on the release); the press itself does nothing.
+-- The macro has run by now (on the release); the press itself does nothing. Only says why
+-- nothing happened: a secret name (dungeons) can't be checked, so it stays quiet then.
 button:SetScript("PostClick", function(_, _, down)
-    if down or not db.watch then return end
-    if Matches("target") then
-        if not ns.CanMark() then return end
-        local current = GetRaidTargetIndex("target")
-        if IsSecret(current) or current ~= db.watchIcon then SetRaidTarget("target", db.watchIcon) end
-        return
-    end
+    if down or not db.watch or Matches("target") then return end
+    if UnitExists("target") and IsSecret(UnitName("target")) then return end
     local now = GetTime()
     if now - lastMiss < ns.MISS_GAP then return end
     lastMiss = now
-    if UnitExists("target") and IsSecret(UnitName("target")) then
-        Print("names are hidden here, so EzMark can't tell what you targeted. Mark it with /tm " .. db.watchIcon .. ".")
+    if not ns.CanMark(true) then
+        Print("you need to be raid leader or assistant to mark.")
     else
         Print(db.watch .. " isn't in view.")
     end
@@ -255,6 +263,7 @@ function ns.WatchCommand(cmd, rest)
         if not index then return Print("unknown icon '" .. arg .. "'.") end
         db.watchIcon = index
         UpdateLook()
+        ApplySecure()
         Print("watch icon set to " .. IconText(index))
     elseif sub == "sound" then
         db.watchSound = OnOff(arg, db.watchSound)
