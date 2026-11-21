@@ -20,7 +20,6 @@ read_globals = {
     "InCombatLockdown", "IsAltKeyDown", "issecretvalue",
     "UnitExists", "UnitIsPlayer", "UnitName",
     "IsInRaid", "GetNumGroupMembers", "UnitIsGroupLeader", "UnitIsGroupAssistant",
-    "GetRaidTargetIndex", "SetRaidTarget",
     "GameTooltip", "GetTime", "C_Timer", "PlaySound", "SOUNDKIT",
     "RaidNotice_AddMessage", "RaidWarningFrame", "ChatTypeInfo",
     "GetBindingKey", "GetBindingText", "IsShiftKeyDown", "UnitIsDead", "IsInGroup",

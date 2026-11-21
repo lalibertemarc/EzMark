@@ -8,7 +8,7 @@ Someone in trade chat is selling what you need, or a friend says "I'm at the ban
 
 - **Alt+click** a player's name in chat to mark them. The name lights up red while Alt is held, so you know the click will mark rather than whisper
 - **Alt+click** the same name again to take the marker off
-- **`/mark <name>`** marks a player by name if they're your target, your focus, in your group or under your mouse
+- **`/mark <name>`** shows a two-line macro that marks them: WoW Forever only lets the game's own `/tm` put markers on, not an addon's command
 - **`/mark icon <icon>`** changes the marker: `1`-`8` or `star`, `circle`, `diamond`, `triangle`, `moon`, `square`, `cross`, `skull` (also `x`)
 
 ## Watch for an NPC

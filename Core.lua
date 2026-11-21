@@ -39,7 +39,6 @@ ns.Print, ns.IsSecret, ns.IconText, ns.plates = Print, IsSecret, IconText, plate
 ---------------------------------------------------------------------------
 -- Finding the player
 ---------------------------------------------------------------------------
--- SetRaidTarget needs a unit token, not a name, so look for a token that points at them.
 local function UnitMatches(unit, key)
     if not UnitExists(unit) then return false end
     local isPlayer = UnitIsPlayer(unit)
@@ -47,21 +46,6 @@ local function UnitMatches(unit, key)
     local name = UnitName(unit)
     if not name or IsSecret(name) then return false end
     return NameKey(name) == key
-end
-
-local FIXED_UNITS = { "target", "mouseover", "focus" }
-
-local function FindUnit(key)
-    for _, unit in ipairs(FIXED_UNITS) do
-        if UnitMatches(unit, key) then return unit end
-    end
-    local prefix = IsInRaid() and "raid" or "party"
-    for i = 1, GetNumGroupMembers() do
-        if UnitMatches(prefix .. i, key) then return prefix .. i end
-    end
-    for unit in pairs(plates) do
-        if UnitMatches(unit, key) then return unit end
-    end
 end
 
 ---------------------------------------------------------------------------
@@ -76,31 +60,20 @@ local function CanMark(quiet)
     return true
 end
 
--- Clicking someone who already has the icon takes it off.
-local function ApplyMark(unit, name)
-    local icon = db.icon
-    local current = GetRaidTargetIndex(unit)
-    if not IsSecret(current) and current == icon then
-        SetRaidTarget(unit, 0)
-        Print("removed " .. IconText(icon) .. " from " .. name .. ".")
-    else
-        SetRaidTarget(unit, icon)
-        Print("marked " .. name .. " " .. IconText(icon))
-    end
-end
-
 local function PrintOutOfRange(name)
     Print(name .. " isn't close enough to mark.")
 end
 
--- /mark can't target (that needs a secure click), so it only finds players who already have
--- a unit token: target, mouseover, focus, group or a visible nameplate.
+-- Forever forbids SetRaidTarget from addon code, even right after a key press (2026-11-21), and a
+-- slash command can't click a secure button, so /mark <name> can only say how to do it.
 local function MarkByName(name)
     name = strtrim(name or "")
-    if name == "" or not CanMark() then return end
-    local unit = FindUnit(NameKey(name))
-    if unit then return ApplyMark(unit, name) end
-    PrintOutOfRange(name)
+    if name == "" then return end
+    Print("WoW Forever only lets the game's own /tm put markers on, so EzMark can't mark from a command. "
+        .. "Alt+click " .. name .. "'s name in chat, or make a macro:")
+    Print("  /targetexact " .. FirstName(name))
+    Print("  /tm !" .. db.icon)
+    Print("For an NPC, /mark watch " .. name .. " gives you a button and a key that do it.")
 end
 ns.CanMark = CanMark
 
@@ -221,7 +194,7 @@ end
 
 local function PrintHelp()
     Print("Alt+click a player's name in chat to mark them " .. IconText(db.icon) .. " (again to remove).")
-    Print("/mark <name> - mark a player by name")
+    Print("/mark <name> - how to mark someone by name (Forever only lets /tm mark)")
     Print("/mark icon <1-8 or name> - change the icon (star, circle, diamond, triangle, moon, square, cross, skull)")
     Print("/mark watch <NPC name> - watch for an NPC, mark it and target it with one key (/mark watch for more)")
 end
