@@ -7,6 +7,8 @@ globals = {
     "SLASH_EZMARK1",
     "SLASH_EZMARK2",
     "SlashCmdList",
+    "BINDING_HEADER_EZMARK",
+    "_G",
 }
 
 read_globals = {
@@ -19,6 +21,9 @@ read_globals = {
     "UnitExists", "UnitIsPlayer", "UnitName",
     "IsInRaid", "GetNumGroupMembers", "UnitIsGroupLeader", "UnitIsGroupAssistant",
     "GetRaidTargetIndex", "SetRaidTarget",
+    "GameTooltip", "GetTime", "C_Timer", "PlaySound", "SOUNDKIT",
+    "RaidNotice_AddMessage", "RaidWarningFrame", "ChatTypeInfo",
+    "GetBindingKey", "GetBindingText", "IsShiftKeyDown", "UnitIsDead", "IsInGroup",
     -- Lua helpers WoW adds
     "strtrim", "strlower",
 }

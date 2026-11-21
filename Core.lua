@@ -33,6 +33,9 @@ local function NameKey(name)
     return strlower(FirstName(name))
 end
 
+-- Shared with Watch.lua.
+ns.Print, ns.IsSecret, ns.IconText, ns.plates = Print, IsSecret, IconText, plates
+
 ---------------------------------------------------------------------------
 -- Finding the player
 ---------------------------------------------------------------------------
@@ -65,9 +68,9 @@ end
 -- Marking
 ---------------------------------------------------------------------------
 -- In a raid only the leader and assistants can mark; in a party or solo anyone can.
-local function CanMark()
+local function CanMark(quiet)
     if IsInRaid() and not (UnitIsGroupLeader("player") or UnitIsGroupAssistant("player")) then
-        Print("you need to be raid leader or assistant to mark.")
+        if not quiet then Print("you need to be raid leader or assistant to mark.") end
         return false
     end
     return true
@@ -99,6 +102,7 @@ local function MarkByName(name)
     if unit then return ApplyMark(unit, name) end
     PrintOutOfRange(name)
 end
+ns.CanMark = CanMark
 
 ---------------------------------------------------------------------------
 -- Alt+click in chat
@@ -206,7 +210,7 @@ end, overlay)
 ---------------------------------------------------------------------------
 -- Slash command
 ---------------------------------------------------------------------------
-local function ParseIcon(arg)
+function ns.ParseIcon(arg)
     local index = tonumber(arg)
     if index and ns.ICONS[index] then return index end
     for i, iconName in ipairs(ns.ICONS) do
@@ -219,6 +223,7 @@ local function PrintHelp()
     Print("Alt+click a player's name in chat to mark them " .. IconText(db.icon) .. " (again to remove).")
     Print("/mark <name> - mark a player by name")
     Print("/mark icon <1-8 or name> - change the icon (star, circle, diamond, triangle, moon, square, cross, skull)")
+    Print("/mark watch <NPC name> - watch for an NPC, mark it and target it with one key (/mark watch for more)")
 end
 
 SLASH_EZMARK1 = "/mark"
@@ -227,8 +232,10 @@ SlashCmdList.EZMARK = function(msg)
     msg = strtrim(msg or "")
     local cmd, rest = msg:match("^(%S+)%s*(.-)$")
     if not cmd then return PrintHelp() end
-    if strlower(cmd) == "icon" and rest ~= "" then
-        local index = ParseIcon(strlower(rest))
+    cmd = strlower(cmd)
+    if cmd == "watch" or cmd == "unwatch" then return ns.WatchCommand(cmd, rest) end
+    if cmd == "icon" and rest ~= "" then
+        local index = ns.ParseIcon(strlower(rest))
         if not index then return Print("unknown icon '" .. rest .. "'.") end
         db.icon = index
         return Print("icon set to " .. IconText(index))
@@ -246,6 +253,7 @@ events:SetScript("OnEvent", function(self, event, arg1, arg2)
         EzMarkDB = EzMarkDB or {}
         db = EzMarkDB
         if not ns.ICONS[db.icon or 0] then db.icon = ns.DEFAULT_ICON end
+        ns.WatchLoaded(db)
     elseif event == "NAME_PLATE_UNIT_ADDED" then
         plates[arg1] = true
     elseif event == "NAME_PLATE_UNIT_REMOVED" then

@@ -1,6 +1,6 @@
 ## Interface: 16001
 ## Title: EzMark
-## Notes: Alt+click a name in chat to put a raid marker over that player.
+## Notes: Alt+click a name in chat to put a raid marker over that player, or watch for an NPC and mark it.
 ## Author: Marc
 ## Version: @project-version@
 ## Category: Chat & Communication
@@ -10,3 +10,4 @@
 
 Data.lua
 Core.lua
+Watch.lua
