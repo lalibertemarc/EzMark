@@ -37,6 +37,8 @@ button:SetFrameStrata("MEDIUM")
 button:RegisterForClicks("AnyUp", "AnyDown")
 button:SetAttribute("useOnKeyDown", false)
 button:SetAttribute("type", "macro")
+button:SetAttribute("type2", "macro") -- right-click targets nothing: it means "stop watching"
+button:SetAttribute("macrotext2", "/stopmacro")
 button:SetMovable(true)
 button:SetClampedToScreen(true)
 button:RegisterForDrag("LeftButton")
@@ -134,7 +136,7 @@ button:SetScript("OnEnter", function(self)
     GameTooltip:AddLine("Click to target it and mark it " .. IconText(db.watchIcon) .. ".", 1, 1, 1, true)
     local key = KeyText()
     GameTooltip:AddLine(key and ("Key: " .. key) or "Set a key under Key Bindings > AddOns > EzMark.", 0.8, 0.8, 0.8, true)
-    GameTooltip:AddLine("Shift-drag to move. /mark unwatch to stop.", 0.8, 0.8, 0.8, true)
+    GameTooltip:AddLine("Right-click to stop watching. Shift-drag to move.", 0.8, 0.8, 0.8, true)
     GameTooltip:Show()
 end)
 
@@ -203,10 +205,16 @@ local function StartWatching()
     end
 end
 
--- The macro has run by now (on the release); the press itself does nothing. Only says why
--- nothing happened: a secret name (dungeons) can't be checked, so it stays quiet then.
-button:SetScript("PostClick", function(_, _, down)
-    if down or not db.watch or Matches("target") then return end
+-- The macro has run by now (on the release); the press itself does nothing. Right-click stops
+-- watching. Otherwise only says why nothing happened: a secret name (dungeons) can't be
+-- checked, so it stays quiet then.
+button:SetScript("PostClick", function(_, mouse, down)
+    if down or not db.watch then return end
+    if mouse == "RightButton" then
+        GameTooltip:Hide()
+        return ns.WatchCommand("unwatch")
+    end
+    if Matches("target") then return end
     if UnitExists("target") and IsSecret(UnitName("target")) then return end
     local now = GetTime()
     if now - lastMiss < ns.MISS_GAP then return end

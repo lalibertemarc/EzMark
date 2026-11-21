@@ -4,7 +4,7 @@
 
 - New: watch for an NPC. `/mark watch <name>` keeps an eye out for it and warns you (chat, center of the screen, raid warning sound) when it shows up on a nameplate, under your mouse or as someone's target.
 - A skull button (and a key you can set under Key Bindings > AddOns > EzMark) targets the NPC and marks it in one press. Spam it all you like: if it isn't in view, your target doesn't change.
-- `/mark watch icon`, `sound` and `reset` change the marker, the alert sound and the button's spot. `/mark unwatch` stops.
+- `/mark watch icon`, `sound` and `reset` change the marker, the alert sound and the button's spot. Right-click the button or `/mark unwatch` to stop.
 - `/mark <name>` no longer tries to mark: WoW Forever refuses markers from an addon's command (it showed an error). It now gives you a two-line macro that does it.
 
 ## v1.0.2

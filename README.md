@@ -18,7 +18,7 @@ Hunting a rare, or need one NPC marked in a crowd? Give EzMark its name and it k
 - **`/mark watch <NPC name>`** starts watching, for example `/mark watch Hogger`. A skull button appears with the name under it
 - **When it shows up** (on a nameplate, under your mouse, as your target or focus, or as a group member's target), EzMark warns you in chat and on screen, plays the raid warning sound and the button glows. Friendly NPCs (guards, vendors) only have nameplates when friendly NPC nameplates are turned on in the game's options, so until then EzMark only notices them under your mouse or as a target
 - **Press the button, or your key,** to target the NPC and mark it. Set the key under Key Bindings > AddOns > EzMark. You can press it as often as you like: if the NPC isn't in view, your target stays as it was
-- **`/mark unwatch`** stops watching
+- **Right-click the button** or type **`/mark unwatch`** to stop watching
 - **`/mark watch icon <icon>`** changes the watch marker (skull by default), **`/mark watch sound on|off`** the alert sound, **`/mark watch reset`** puts the button back. **Shift-drag** the button to move it
 - **`/mark watch`** shows what's being watched and the settings
 
