@@ -15,7 +15,8 @@ read_globals = {
     -- Frames & UI
     "CreateFrame", "UIParent", "DEFAULT_CHAT_FRAME", "EventRegistry", "GetCursorPosition",
     -- Namespaced APIs
-    "C_CVar",
+    "C_CVar", "C_Map", "C_SuperTrack", "UiMapPoint", "Enum",
+    "ChatFrameUtil", "ChatFrame_AddMessageEventFilter", "ChatEdit_InsertLink", "IsModifiedClick",
     -- Global APIs
     "InCombatLockdown", "IsAltKeyDown", "issecretvalue",
     "UnitExists", "UnitIsPlayer", "UnitName",

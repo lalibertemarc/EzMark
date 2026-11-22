@@ -24,6 +24,15 @@ Hunting a rare, or need one NPC marked in a crowd? Give EzMark its name and it k
 
 The game only lets you target with your own key press or click, so EzMark never targets anything by itself. Marking needs a press too, so the button or key does both.
 
+## Map coordinates in chat
+
+Someone says "rare at 45.2, 67.8"? The numbers turn blue: **click** them and a pin goes on your map, with the arrow pointing the way. Click again to take the pin off.
+
+- **Which map:** if the line names a zone ("Westfall 56, 47", "/way Elwynn Forest 45 67"), that zone. From your party or raid, the sender's zone. Otherwise your own zone
+- **What counts:** two numbers from 0 to 100, with a comma between them or decimals ("45, 67", "45.2 67.8"). Two whole numbers with only a space between them ("45 67") count after "at", "@", "coords", "/way" or a zone name, in brackets, or alone on the line, so "I have 45 67 problems" stays as typed
+- **Hover** shows the zone and coordinates. **Shift-click** while typing puts "Zone 45.2, 67.8" in your line, so anyone can read it
+- **`/mark coords off`** leaves coordinates as typed (`on` to bring it back)
+
 ## Good to know
 
 - **Your target changes:** Alt+click targets the player so it can mark them, the same way a `/targetexact` macro would. They stay targeted, which also helps you find them

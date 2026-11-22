@@ -5,6 +5,7 @@
 - New: watch for an NPC. `/mark watch <name>` keeps an eye out for it and warns you (chat, center of the screen, raid warning sound) when it shows up on a nameplate, under your mouse or as someone's target.
 - A skull button (and a key you can set under Key Bindings > AddOns > EzMark) targets the NPC and marks it in one press. Spam it all you like: if it isn't in view, your target doesn't change.
 - `/mark watch icon`, `sound` and `reset` change the marker, the alert sound and the button's spot. Right-click the button or `/mark unwatch` to stop.
+- New: map coordinates in chat are clickable. "Rare at 45.2, 67.8", "Westfall 56, 47" or "/way 45 67" turn blue; click to put a pin on your map (click again to take it off). With a zone name it goes on that zone's map, from your party or raid on the sender's zone, otherwise on yours. Shift-click while typing passes the place on. `/mark coords off` leaves them as typed.
 - `/mark <name>` no longer tries to mark: WoW Forever refuses markers from an addon's command (it showed an error). It now gives you a two-line macro that does it.
 
 ## v1.0.2

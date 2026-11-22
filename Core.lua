@@ -197,6 +197,7 @@ local function PrintHelp()
     Print("/mark <name> - how to mark someone by name (Forever only lets /tm mark)")
     Print("/mark icon <1-8 or name> - change the icon (star, circle, diamond, triangle, moon, square, cross, skull)")
     Print("/mark watch <NPC name> - watch for an NPC, mark it and target it with one key (/mark watch for more)")
+    Print("Click map coordinates in chat (45.2, 67.8) for a pin on your map. /mark coords on|off")
 end
 
 SLASH_EZMARK1 = "/mark"
@@ -207,6 +208,7 @@ SlashCmdList.EZMARK = function(msg)
     if not cmd then return PrintHelp() end
     cmd = strlower(cmd)
     if cmd == "watch" or cmd == "unwatch" then return ns.WatchCommand(cmd, rest) end
+    if cmd == "coords" then return ns.CoordsCommand(rest) end
     if cmd == "icon" and rest ~= "" then
         local index = ns.ParseIcon(strlower(rest))
         if not index then return Print("unknown icon '" .. rest .. "'.") end
@@ -227,6 +229,7 @@ events:SetScript("OnEvent", function(self, event, arg1, arg2)
         db = EzMarkDB
         if not ns.ICONS[db.icon or 0] then db.icon = ns.DEFAULT_ICON end
         ns.WatchLoaded(db)
+        ns.PinsLoaded(db)
     elseif event == "NAME_PLATE_UNIT_ADDED" then
         plates[arg1] = true
     elseif event == "NAME_PLATE_UNIT_REMOVED" then
